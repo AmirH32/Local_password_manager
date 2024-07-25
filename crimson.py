@@ -7,7 +7,6 @@ from cryptography.hazmat.backends import default_backend
 import base64
 from fuzzywuzzy import process 
 import getpass
-import time
 import pyperclip
 
 
@@ -154,5 +153,4 @@ if __name__ == "__main__":
         if choice == 1:
             pass
         elif choice == 2:
-            time.sleep(3)
             quit()
