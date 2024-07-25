@@ -17,9 +17,7 @@ KEY_SIZE = 32  # 256-bit key
 NONCE_SIZE = 12  # 96-bit nonce
 TAG_SIZE = 16
 ITERATIONS = 100000
-#FILE_PATH = "../../../text_files/Greenbull.txt"
-FILE_PATH = "../text_files/Greenbull.txt"
-RANGES_PATH = "../text_files/range.txt"
+FILE_PATH = "Passwords.txt"
 
 def find_closest_string(target, string_list):
     closest_match = process.extractOne(target, string_list)
@@ -29,7 +27,6 @@ def find_closest_string(target, string_list):
 class Encryptor:
     @staticmethod
     def generate_key(password, salt):
-        # Derive a key from the password and salt using PBKDF2HMAC
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=KEY_SIZE,
@@ -54,8 +51,13 @@ class Encryptor:
         
         encryptor = cipher.encryptor()
         
-        with open(file_path, 'rb') as f:
-            plaintext = f.read()
+        try:
+            with open(file_path, 'rb') as f:
+                plaintext = f.read()
+        except:
+            with open(file_path, 'wb') as f:
+                print('=== Initialisation complete - Created "Passwords.txt" file ===\n Please run again to start retreiving passwords')
+                pass
         
         ciphertext = encryptor.update(plaintext) + encryptor.finalize()
         
@@ -104,9 +106,11 @@ def auth_decrypt():
     while count < 3 and valid == False:
         password = getpass.getpass(prompt='Enter password: ')
         try:
-            #encrypt_file(FILE_PATH, password)
             valid = Encryptor.decrypt_file(FILE_PATH+'.enc', password)
-            
+        except FileNotFoundError as e:
+            Encryptor.encrypt_file(FILE_PATH, password)
+            input("Press enter to quit:")
+            quit()   
         except Exception as e:
             print(f"Incorrect password: {e}")
             count += 1
