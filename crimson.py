@@ -50,13 +50,8 @@ class Encryptor:
         
         encryptor = cipher.encryptor()
         
-        try:
-            with open(file_path, 'rb') as f:
-                plaintext = f.read()
-        except:
-            with open(file_path, 'wb') as f:
-                print('=== Initialisation complete - Created "Passwords.txt" file ===\n Please run again to start retreiving passwords')
-                pass
+        with open(file_path, 'rb') as f:
+            plaintext = f.read()
         
         ciphertext = encryptor.update(plaintext) + encryptor.finalize()
         
@@ -102,14 +97,23 @@ def auth_decrypt():
     """Decrypts the file after the correct password is entered otherwise terminates the program"""
     count = 0
     valid = False
+
+    if not os.path.isfile(FILE_PATH) and not os.path.isfile(FILE_PATH+'.enc'):
+        print("Passwords.txt file not found >>>\nCreating a Passwords.txt file for you...")
+        with open(FILE_PATH, 'w') as f:
+            pass
+        password = getpass.getpass(prompt="Set your master password (main password to decrypt text file):")
+        Encryptor.encrypt_file(FILE_PATH, password)
+    elif not os.path.isfile(FILE_PATH+'.enc'):
+        password = getpass.getpass(prompt='Set your master password (main password to decrypt text file): ')
+        Encryptor.encrypt_file(FILE_PATH, password)
+        print("===Successfully recovered Passwords.txt file and encrypted it===")
+
+        
     while count < 3 and valid == False:
-        password = getpass.getpass(prompt='Enter password: ')
+        password = getpass.getpass(prompt='Enter password to open encrypted file: ')
         try:
             valid = Encryptor.decrypt_file(FILE_PATH+'.enc', password)
-        except FileNotFoundError as e:
-            Encryptor.encrypt_file(FILE_PATH, password)
-            input("Press enter to quit:")
-            quit()   
         except Exception as e:
             print(f"Incorrect password: {e}")
             count += 1
@@ -134,6 +138,11 @@ if __name__ == "__main__":
     auth_decrypt()
     lines = file_reader(FILE_PATH)
     before_comma, after_comma = text_parser(lines)
+    try:
+        os.remove(FILE_PATH)
+        print("Plaintext deleted") 
+    except:
+        pass
     while True:
         print(f"List of accounts: \n {before_comma} \n {'='*30}")
         target_string = input("Please enter what you want:")
@@ -143,11 +152,7 @@ if __name__ == "__main__":
         print(f"Your password is {after_comma[index]} it is saved to your clipboard")
         print(f"Password for {before_comma[index]}")
         pyperclip.copy(after_comma[index])
-        try:
-            os.remove(FILE_PATH)
-            print("Plaintext deleted") 
-        except:
-            pass
+        
 
         choice = int(input("Menu\n1). Get another password\n2). Quit\n:"))
         if choice == 1:
